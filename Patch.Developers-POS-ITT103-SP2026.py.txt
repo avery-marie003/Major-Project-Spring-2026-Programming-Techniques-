@@ -1,0 +1,267 @@
+# -----------------------------
+# BEST BUY RETAIL STORE - POS SYSTEM
+# -----------------------------
+
+TAX_RATE = 0.10          # Sales tax rate (10%)
+DISCOUNT_RATE = 0.05     # Discount rate (5%)
+DISCOUNT_LIMIT = 5000   # Minimum amount to get discount
+choice = ""              # Stores menu choice
+item = ""                # Stores product name
+qty = 0                  # Stores quantity
+price = 0.0              # Stores item price
+stock = 0                # Stores stock amount
+subtotal = 0.0           # Stores subtotal
+tax = 0.0                # Stores tax amount
+total = 0.0              # Stores total bill
+payment = 0.0            # Stores customer payment
+change = 0.0             # Stores change
+
+# Product catalog stored in a dictionary
+# Each product has a price and stock amount
+# Value = [price , stock]
+products = {
+    "rice": [450.00, 20],        # 1kg rice
+    "flour": [380.00, 15],       # 1kg flour
+    "sugar": [360.00, 18],       # 1kg sugar
+    "oil": [950.00, 10],         # 1L cooking oil
+    "milk": [280.00, 25],        # 1L milk
+    "eggs": [720.00, 12],        # dozen eggs
+    "bread": [320.00, 20],       # loaf of bread
+    "soap": [150.00, 30],        # bar soap
+    "toothpaste": [420.00, 15],  # toothpaste
+    "water": [120.00, 40]        # bottled water
+}
+
+# Empty dictionary to store cart items
+cart = {}
+
+# -----------------------------
+# FUNCTION TO SHOW PRODUCTS
+# -----------------------------
+def show_products():
+    # Print heading
+    print("\nAvailable Products:")
+    print("--------------------")
+
+    # Loop through all products
+    for item in products:
+        # Get price and stock for each product
+        price = products[item][0]
+        stock = products[item][1]
+
+        # Display product details
+        print(item.capitalize(), "- $", price, "| Stock:", stock)
+
+# -----------------------------
+# FUNCTION TO ADD ITEM TO CART
+# -----------------------------
+def add_to_cart():
+    # Show available products
+    show_products()
+
+    # Ask user for product name
+    item = input("\nEnter product name: ").lower()
+
+    # Check if product exists
+    if item not in products:
+        print("? Product not found.")
+        return
+
+    # Ask user for quantity
+    qty = int(input("Enter quantity: "))
+
+    # Check if enough stock is available
+    if qty > products[item][1]:
+        print("? Not enough stock.")
+        return
+
+    # Add item to cart or update quantity
+    cart[item] = cart.get(item, 0) + qty
+
+    # Reduce stock from product list
+    products[item][1] -= qty
+
+    # Confirm item added
+    print("? Item added to cart.")
+
+# -----------------------------
+# FUNCTION TO REMOVE ITEM
+# -----------------------------
+def remove_from_cart():
+    # Check if cart is empty
+    if not cart:
+        print("?? Cart is empty.")
+        return
+
+    # Show cart contents
+    print("\nCart Items:")
+    for item in cart:
+        print(item.capitalize(), "- Quantity:", cart[item])
+
+    # Ask user for item name
+    item = input("Enter item to remove: ").lower()
+
+    # Check if item exists in cart
+    if item not in cart:
+        print("? Item not in cart.")
+        return
+
+    # Ask quantity to remove
+    qty = int(input("Enter quantity to remove: "))
+
+    
+    if qty >= cart[item]:
+        # Return stock
+        products[item][1] += cart[item]
+        # Remove item from cart
+        del cart[item]
+    else:
+        # Reduce quantity
+        cart[item] -= qty
+        # Return stock
+        products[item][1] += qty
+
+    # Confirm removal
+    print("? Item removed.")
+
+# -----------------------------
+# FUNCTION TO VIEW CART
+# -----------------------------
+def view_cart():
+    # Check if cart is empty
+    if not cart:
+        print("?? Cart is empty.")
+        return
+
+    # Initialize subtotal
+    subtotal = 0
+
+    discount = 0
+
+    # Print heading
+    print("\nYour Cart:")
+    print("-----------")
+
+    # Loop through cart items
+    for item in cart:
+        price = products[item][0]
+        qty = cart[item]
+        total = price * qty
+
+        # Add to subtotal
+        subtotal += total
+
+        # Show item details
+        print(item.capitalize(), "-", qty, "x $", price, "= $", round(total, 2))
+
+    # Apply discount if subtotal exceeds limit
+    if subtotal > DISCOUNT_LIMIT:
+        discount = subtotal * DISCOUNT_RATE
+
+    # Calculate tax on discounted subtotal
+    tax = (subtotal - discount) * TAX_RATE
+
+    # Calculate final total
+    total_bill = subtotal - discount + tax
+
+    # Display totals
+    print("\nSubtotal: $", round(subtotal, 2))
+    print("Discount:", round(discount, 2))
+    print("Tax (10%): $", round(tax, 2))
+    print("Total: $", round(total_bill, 2))
+
+# -----------------------------
+# FUNCTION TO CHECKOUT + RECEIPT
+# -----------------------------
+def checkout():
+    # Check if cart is empty
+    if not cart:
+        print("?? Cart is empty.")
+        return
+
+    # Show cart summary
+    view_cart()
+
+    # Calculate subtotal
+    subtotal = 0
+    for item in cart:
+        subtotal += products[item][0] * cart[item]
+
+    # Initialize discount
+    discount = 0
+
+    # Apply discount if eligible
+    if subtotal > DISCOUNT_LIMIT:
+        discount = subtotal * DISCOUNT_RATE
+
+    # Calculate tax
+    tax = (subtotal - discount) * TAX_RATE
+
+    # Calculate final total
+    total = subtotal - discount + tax
+
+    # Ask for payment
+    payment = float(input("\nEnter amount received: $"))
+
+    # Validate payment
+    if payment < total:
+        print("? Payment not enough.")
+        return
+
+    # Calculate change
+    change = payment - total
+
+    # Print receipt
+    print("\n--- RECEIPT ---")
+    print("Best Buy Retail Store")
+
+    # Print purchased items
+    for item in cart:
+        print(item, "-", cart[item])
+
+    # Print totals
+    print("Subtotal:", subtotal)
+    print("Discount:", discount)
+    print("Tax:", tax)
+    print("Total:", total)
+    print("Paid:", payment)
+    print("Change:", change)
+
+    # Thank customer
+    print("Thank you for shopping!")
+
+    # Clear cart for next transaction
+    cart.clear()
+
+# -----------------------------
+# MAIN MENU LOOP
+# -----------------------------
+while True:
+    # Display menu options
+    print("\n--- POS MENU ---")
+    print("1. View Products")
+    print("2. Add Item to Cart")
+    print("3. Remove Item from Cart")
+    print("4. View Cart")
+    print("5. Checkout")
+    print("6. Exit")
+
+    # Get user choice
+    choice = input("Choose an option: ")
+
+    # Menu options
+    if choice == "1":
+        show_products()
+    elif choice == "2":
+        add_to_cart()
+    elif choice == "3":
+        remove_from_cart()
+    elif choice == "4":
+        view_cart()
+    elif choice == "5":
+        checkout()
+    elif choice == "6":
+        print("Goodbye!")
+        break
+    else:
+        print("? Invalid option.")
